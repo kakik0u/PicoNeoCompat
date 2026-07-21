@@ -1,0 +1,9 @@
+/build/
+/dist/
+*.obj
+*.exp
+*.lib
+*.log
+*.user
+.vs/
+

@@ -1,0 +1,43 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        shell: powershell
+        # GitHub-hosted runners do not have an NVIDIA GPU/driver. The smoke
+        # test executable is built here and is run by default on local builds.
+        run: .\scripts\build.ps1 -SkipSmokeTest
+
+      - name: Create release packages
+        shell: powershell
+        run: |
+          $package = 'dist\PicoNeoCompat-win64'
+          New-Item -ItemType Directory -Force -Path "$package\build", "$package\scripts" | Out-Null
+          Copy-Item build\nvEncCompat64.dll "$package\build\"
+          Copy-Item scripts\install.ps1, scripts\uninstall.ps1 "$package\scripts\"
+          Copy-Item Install.bat, Uninstall.bat, README.md, Readme-EN.md, LICENSE, THIRD_PARTY_NOTICES.md "$package\"
+          Compress-Archive -Path "$package\*" -DestinationPath 'dist\PicoNeoCompat-win64.zip'
+          git archive --format=zip --output='dist\PicoNeoCompat-source.zip' HEAD
+
+      - name: Publish GitHub release
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create $env:GITHUB_REF_NAME `
+            dist\PicoNeoCompat-win64.zip `
+            dist\PicoNeoCompat-source.zip `
+            --title $env:GITHUB_REF_NAME `
+            --generate-notes
