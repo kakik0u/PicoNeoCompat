@@ -9,12 +9,13 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-      - name: Build and smoke test
+      - name: Build
         shell: powershell
-        run: .\scripts\build.ps1
+        # GitHub-hosted runners do not provide an NVIDIA GPU/driver. The smoke
+        # test executable is compiled here and runs by default on local builds.
+        run: .\scripts\build.ps1 -SkipSmokeTest
       - name: Upload DLL
         uses: actions/upload-artifact@v4
         with:
           name: nvEncCompat64
           path: build/nvEncCompat64.dll
-
