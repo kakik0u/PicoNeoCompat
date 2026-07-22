@@ -2,7 +2,7 @@
 
 [EN Version](https://github.com/kakik0u/PicoNeoCompat/blob/main/Readme-EN.md)
 
-582.xx以降のNVIDIAドライバーで、Streaming Assistantを使用するPICO Neo2 / Neo2 Eye/ Neo3 でSteamVRを使えるようにする互換パッチ
+582.xx以降のNVIDIAドライバーで、Streaming Assistantを使用するPICO Neo2 / Neo2 Eye/(もしかしたらNeo3) でSteamVRを使えるようにする互換パッチ
 
 > [!WARNING]
 > 非公式のパッチです。PICO、Valve、NVIDIAとは無関係です。自分の責任で使ってください。
