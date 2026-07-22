@@ -2,7 +2,7 @@
 
 [Japanese Version](https://github.com/kakik0u/PicoNeoCompat/blob/main/README.md)
 
-A compatibility patch that enables SteamVR to work with PICO Neo2 / Neo2 Eye / Neo3 headsets using Streaming Assistant on NVIDIA driver versions 582.xx and later.
+A compatibility patch that enables SteamVR to work with PICO Neo2 / Neo2 Eye /(Maybe Neo3?) headsets using Streaming Assistant on NVIDIA driver versions 582.xx and later.
 
 > [!WARNING]
 > This is an unofficial patch and is not affiliated with PICO, Valve, or NVIDIA. Use it at your own risk.
