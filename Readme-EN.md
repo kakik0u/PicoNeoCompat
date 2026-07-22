@@ -110,7 +110,7 @@ After building, you can use `Install.bat`, or run `install.ps1` with explicit pa
 
 ## Technical References
 
-- [Technical overview (Japanese)](https://zenn.dev/articles/66f8061fc269f3/)
+- [Technical overview (Japanese)](https://zenn.dev/kakikou/articles/66f8061fc269f3/?locale=en)
 - [NVIDIA NVENC Preset Migration Guide](https://docs.nvidia.com/video-technologies/video-codec-sdk/13.0/nvenc-preset-migration-guide/index.html)
 - [NVIDIA NVENC deprecation notices](https://docs.nvidia.com/video-technologies/video-codec-sdk/13.0/deprecation-notices/index.html)
 - [NVIDIA NVENC programming guide](https://docs.nvidia.com/video-technologies/video-codec-sdk/13.0/nvenc-video-encoder-api-prog-guide/index.html)
