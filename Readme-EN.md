@@ -6,6 +6,7 @@ A compatibility patch that enables SteamVR to work with PICO Neo2 / Neo2 Eye /(M
 
 > [!WARNING]
 > This is an unofficial patch and is not affiliated with PICO, Valve, or NVIDIA. Use it at your own risk.
+> I recommend [ALVR](https://github.com/Juspertinry/alvr-pico-legacy) for Pico Neo2. This one is higher quality and lighter.
 
 ## Installation
 

@@ -6,6 +6,7 @@
 
 > [!WARNING]
 > 非公式のパッチです。PICO、Valve、NVIDIAとは無関係です。自分の責任で使ってください。
+> それと、[ALVR](https://github.com/Juspertinry/alvr-pico-legacy) のほうが良いかもしれません。軽いし。
 
 ## 導入
 
