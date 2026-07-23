@@ -49,16 +49,18 @@ Open **SteamVR Settings** → **Startup/Shutdown** → **Manage Add-ons**, unblo
 
 ## Experimenting with Presets
 
-Open `nvenc_compat.ini` from the release package in Notepad to change the NVENC settings without rebuilding. Close SteamVR, edit the values, then run `Install.bat` again.
+Open `nvenc_compat.ini` from the release package in Notepad to change the NVENC settings. Close SteamVR, edit the values, then run `Install.bat` again.
+
+If performance is sluggish using the default settings,use this.
 
 ```ini
 [NVENC]
-Preset=P2
-Tuning=UltraLowLatency
+Preset=P3
+Tuning=LowLatency
 MultiPass=Disabled
 ```
 
-The combination above is a good first test. It favors lower encoder load and latency compared with the `P4 / HighQuality` combination selected by the current automatic mapping.
+It favors lower encoder load and latency.
 
 Accepted values:
 
