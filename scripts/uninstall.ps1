@@ -29,6 +29,16 @@ if (Test-Path -LiteralPath $state.steamVrShim) {
     }
 }
 
+if ($state.steamVrConfig -and (Test-Path -LiteralPath $state.steamVrConfig)) {
+    $currentHash = (Get-FileHash -LiteralPath $state.steamVrConfig -Algorithm SHA256).Hash
+    if ($currentHash -eq $state.configSha256) {
+        Remove-Item -LiteralPath $state.steamVrConfig -Force
+    }
+    else {
+        Write-Warning 'The SteamVR compatibility configuration has changed, so it was not removed.'
+    }
+}
+
 if ($RemovePatchedDriver) {
     $root = [IO.Path]::GetFullPath($InstallRoot).TrimEnd('\') + '\'
     $driver = [IO.Path]::GetFullPath([string]$state.installedDriver)
@@ -40,4 +50,3 @@ if ($RemovePatchedDriver) {
 
 Remove-Item -LiteralPath $statePath -Force
 Write-Host 'Original PICO driver registration restored.' -ForegroundColor Green
-

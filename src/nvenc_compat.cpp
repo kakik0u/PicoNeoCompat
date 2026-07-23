@@ -12,6 +12,8 @@ HMODULE g_self = nullptr;
 HMODULE g_real = nullptr;
 SRWLOCK g_lock = SRWLOCK_INIT;
 wchar_t g_log_path[MAX_PATH] = {};
+wchar_t g_config_path[MAX_PATH] = {};
+INIT_ONCE g_config_once = INIT_ONCE_STATIC_INIT;
 
 using CreateInstanceFn = NVENCSTATUS(NVENCAPI*)(NV_ENCODE_API_FUNCTION_LIST*);
 using GetMaxVersionFn = NVENCSTATUS(NVENCAPI*)(uint32_t*);
@@ -68,7 +70,136 @@ struct PresetTranslation {
     bool changed;
 };
 
-PresetTranslation TranslatePreset(const GUID& preset) {
+struct OverrideConfig {
+    bool preset_enabled = false;
+    GUID preset = {};
+    const char* preset_name = "Auto";
+    bool tuning_enabled = false;
+    NV_ENC_TUNING_INFO tuning = NV_ENC_TUNING_INFO_UNDEFINED;
+    const char* tuning_name = "Auto";
+    bool multipass_enabled = false;
+    NV_ENC_MULTI_PASS multipass = NV_ENC_MULTI_PASS_DISABLED;
+    const char* multipass_name = "Auto";
+};
+
+OverrideConfig g_config;
+
+bool ParsePreset(const wchar_t* value, GUID* preset, const char** name) {
+    if (_wcsicmp(value, L"P1") == 0) {
+        *preset = NV_ENC_PRESET_P1_GUID; *name = "P1"; return true;
+    }
+    if (_wcsicmp(value, L"P2") == 0) {
+        *preset = NV_ENC_PRESET_P2_GUID; *name = "P2"; return true;
+    }
+    if (_wcsicmp(value, L"P3") == 0) {
+        *preset = NV_ENC_PRESET_P3_GUID; *name = "P3"; return true;
+    }
+    if (_wcsicmp(value, L"P4") == 0) {
+        *preset = NV_ENC_PRESET_P4_GUID; *name = "P4"; return true;
+    }
+    if (_wcsicmp(value, L"P5") == 0) {
+        *preset = NV_ENC_PRESET_P5_GUID; *name = "P5"; return true;
+    }
+    if (_wcsicmp(value, L"P6") == 0) {
+        *preset = NV_ENC_PRESET_P6_GUID; *name = "P6"; return true;
+    }
+    if (_wcsicmp(value, L"P7") == 0) {
+        *preset = NV_ENC_PRESET_P7_GUID; *name = "P7"; return true;
+    }
+    return false;
+}
+
+bool ParseTuning(const wchar_t* value, NV_ENC_TUNING_INFO* tuning,
+                 const char** name) {
+    if (_wcsicmp(value, L"HighQuality") == 0) {
+        *tuning = NV_ENC_TUNING_INFO_HIGH_QUALITY;
+        *name = "HighQuality";
+        return true;
+    }
+    if (_wcsicmp(value, L"LowLatency") == 0) {
+        *tuning = NV_ENC_TUNING_INFO_LOW_LATENCY;
+        *name = "LowLatency";
+        return true;
+    }
+    if (_wcsicmp(value, L"UltraLowLatency") == 0) {
+        *tuning = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
+        *name = "UltraLowLatency";
+        return true;
+    }
+    if (_wcsicmp(value, L"Lossless") == 0) {
+        *tuning = NV_ENC_TUNING_INFO_LOSSLESS;
+        *name = "Lossless";
+        return true;
+    }
+    return false;
+}
+
+bool ParseMultiPass(const wchar_t* value, NV_ENC_MULTI_PASS* multipass,
+                    const char** name) {
+    if (_wcsicmp(value, L"Disabled") == 0) {
+        *multipass = NV_ENC_MULTI_PASS_DISABLED;
+        *name = "Disabled";
+        return true;
+    }
+    if (_wcsicmp(value, L"Quarter") == 0) {
+        *multipass = NV_ENC_TWO_PASS_QUARTER_RESOLUTION;
+        *name = "Quarter";
+        return true;
+    }
+    if (_wcsicmp(value, L"Full") == 0) {
+        *multipass = NV_ENC_TWO_PASS_FULL_RESOLUTION;
+        *name = "Full";
+        return true;
+    }
+    return false;
+}
+
+BOOL CALLBACK LoadConfig(PINIT_ONCE, PVOID, PVOID*) {
+    if (GetFileAttributesW(g_config_path) == INVALID_FILE_ATTRIBUTES) {
+        Log("config not found; using automatic compatibility mapping");
+        return TRUE;
+    }
+
+    wchar_t value[64] = {};
+    GetPrivateProfileStringW(L"NVENC", L"Preset", L"Auto",
+                             value, _countof(value), g_config_path);
+    if (_wcsicmp(value, L"Auto") != 0 &&
+        !ParsePreset(value, &g_config.preset, &g_config.preset_name)) {
+        Log("invalid config Preset=%ls; using Auto", value);
+    } else if (_wcsicmp(value, L"Auto") != 0) {
+        g_config.preset_enabled = true;
+    }
+
+    GetPrivateProfileStringW(L"NVENC", L"Tuning", L"Auto",
+                             value, _countof(value), g_config_path);
+    if (_wcsicmp(value, L"Auto") != 0 &&
+        !ParseTuning(value, &g_config.tuning, &g_config.tuning_name)) {
+        Log("invalid config Tuning=%ls; using Auto", value);
+    } else if (_wcsicmp(value, L"Auto") != 0) {
+        g_config.tuning_enabled = true;
+    }
+
+    GetPrivateProfileStringW(L"NVENC", L"MultiPass", L"Auto",
+                             value, _countof(value), g_config_path);
+    if (_wcsicmp(value, L"Auto") != 0 &&
+        !ParseMultiPass(value, &g_config.multipass,
+                        &g_config.multipass_name)) {
+        Log("invalid config MultiPass=%ls; using Auto", value);
+    } else if (_wcsicmp(value, L"Auto") != 0) {
+        g_config.multipass_enabled = true;
+    }
+
+    Log("config loaded preset=%s tuning=%s multipass=%s",
+        g_config.preset_name, g_config.tuning_name,
+        g_config.multipass_name);
+    return TRUE;
+}
+
+void EnsureConfig() {
+    InitOnceExecuteOnce(&g_config_once, LoadConfig, nullptr, nullptr);
+}
+
+PresetTranslation TranslatePresetDefault(const GUID& preset) {
     if (GuidEqual(preset, NV_ENC_PRESET_LOW_LATENCY_HP_GUID))
         return {NV_ENC_PRESET_P2_GUID, NV_ENC_TUNING_INFO_LOW_LATENCY,
                 "LowLatencyHP", "P2/LowLatency", true};
@@ -97,6 +228,22 @@ PresetTranslation TranslatePreset(const GUID& preset) {
             "modern/unknown", "unchanged/LowLatency", false};
 }
 
+PresetTranslation TranslatePreset(const GUID& preset) {
+    PresetTranslation translation = TranslatePresetDefault(preset);
+    EnsureConfig();
+    if (g_config.preset_enabled) {
+        translation.preset = g_config.preset;
+        translation.changed = true;
+    }
+    if (g_config.tuning_enabled) {
+        translation.tuning = g_config.tuning;
+        translation.changed = true;
+    }
+    if (g_config.preset_enabled || g_config.tuning_enabled)
+        translation.target_name = "configured override";
+    return translation;
+}
+
 void TranslateRateControl(NV_ENC_CONFIG* config) {
     if (!config) return;
 
@@ -119,6 +266,12 @@ void TranslateRateControl(NV_ENC_CONFIG* config) {
             break;
         default:
             break;
+    }
+    EnsureConfig();
+    if (g_config.multipass_enabled) {
+        config->rcParams.multiPass = g_config.multipass;
+        Log("configured multipass override=%s",
+            g_config.multipass_name);
     }
 }
 
@@ -284,6 +437,8 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
         if (slash) *(slash + 1) = L'\0';
         wcscpy_s(g_log_path, module_path);
         wcscat_s(g_log_path, L"nvenc_compat.log");
+        wcscpy_s(g_config_path, module_path);
+        wcscat_s(g_config_path, L"nvenc_compat.ini");
     }
     return TRUE;
 }

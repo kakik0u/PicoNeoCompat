@@ -46,6 +46,34 @@ Open **SteamVR Settings** → **Startup/Shutdown** → **Manage Add-ons**, unblo
 4. Installs the compatibility DLL
 5. Redirects the OpenVR driver registration to the copied driver
 
+## Experimenting with Presets
+
+Open `nvenc_compat.ini` from the release package in Notepad to change the NVENC settings without rebuilding. Close SteamVR, edit the values, then run `Install.bat` again.
+
+```ini
+[NVENC]
+Preset=P2
+Tuning=UltraLowLatency
+MultiPass=Disabled
+```
+
+The combination above is a good first test. It favors lower encoder load and latency compared with the `P4 / HighQuality` combination selected by the current automatic mapping.
+
+Accepted values:
+
+- `Preset`: `Auto`, `P1` through `P7` (P1 is faster; P7 favors quality and requires more work)
+- `Tuning`: `Auto`, `HighQuality`, `LowLatency`, `UltraLowLatency`, `Lossless`
+- `MultiPass`: `Auto`, `Disabled`, `Quarter`, `Full`
+
+For an easier comparison, try one combination at a time:
+
+1. `P2 / UltraLowLatency / Disabled`
+2. `P3 / LowLatency / Disabled`
+3. `P4 / LowLatency / Disabled`
+4. The default `Auto / Auto / Auto`
+
+Lower presets may reduce image quality at the same bitrate. Confirm that the configuration was loaded by finding `config loaded preset=...` in `nvenc_compat.log`. Invalid values fall back to `Auto`.
+
 ## Uninstallation
 
 Exit SteamVR, then double-click `Uninstall.bat` in the extracted folder. Select **Yes** when the administrator permission dialog appears. This restores the original driver registration.

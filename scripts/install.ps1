@@ -92,6 +92,7 @@ Write-Host "SteamVR:     $SteamVrPath"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $shimSource = Join-Path $repoRoot 'build\nvEncCompat64.dll'
+$configSource = Join-Path $repoRoot 'nvenc_compat.ini'
 $vrPathReg = Join-Path $SteamVrPath 'bin\win64\vrpathreg.exe'
 $steamVrBin = Join-Path $SteamVrPath 'bin\win64'
 $sourceDriver = [IO.Path]::GetFullPath($PicoDriverPath)
@@ -107,6 +108,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $sourceDriver 'driver.vrdrivermanife
 }
 if (-not (Test-Path -LiteralPath $shimSource)) {
     throw 'build\nvEncCompat64.dll is missing. Download the prebuilt release package, or run scripts\build.ps1.'
+}
+if (-not (Test-Path -LiteralPath $configSource)) {
+    throw 'nvenc_compat.ini is missing.'
 }
 if (-not (Test-Path -LiteralPath $vrPathReg)) {
     throw "SteamVR was not found at: $SteamVrPath"
@@ -150,12 +154,17 @@ if (Test-Path -LiteralPath $ini) {
 
 $driverShim = Join-Path $targetDriver 'bin\win64\nvEncCompat64.dll'
 $steamVrShim = Join-Path $steamVrBin 'nvEncCompat64.dll'
+$driverConfig = Join-Path $targetDriver 'bin\win64\nvenc_compat.ini'
+$steamVrConfig = Join-Path $steamVrBin 'nvenc_compat.ini'
 if ((Test-Path -LiteralPath $steamVrShim) -and -not $Force) {
     throw "A file already exists at $steamVrShim. Use -Force only if it came from this project."
 }
 Copy-Item -LiteralPath $shimSource -Destination $driverShim -Force
 Copy-Item -LiteralPath $shimSource -Destination $steamVrShim -Force
+Copy-Item -LiteralPath $configSource -Destination $driverConfig -Force
+Copy-Item -LiteralPath $configSource -Destination $steamVrConfig -Force
 $shimHash = (Get-FileHash -LiteralPath $steamVrShim -Algorithm SHA256).Hash
+$configHash = (Get-FileHash -LiteralPath $steamVrConfig -Algorithm SHA256).Hash
 
 & $vrPathReg removedriver $sourceDriver
 & $vrPathReg removedriver $targetDriver
@@ -168,6 +177,8 @@ $state = [ordered]@{
     steamVrPath = [IO.Path]::GetFullPath($SteamVrPath)
     steamVrShim = $steamVrShim
     shimSha256 = $shimHash
+    steamVrConfig = $steamVrConfig
+    configSha256 = $configHash
     installedAt = (Get-Date).ToString('o')
 }
 $state | ConvertTo-Json | Set-Content -LiteralPath $statePath -Encoding UTF8

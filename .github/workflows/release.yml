@@ -27,7 +27,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path "$package\build", "$package\scripts" | Out-Null
           Copy-Item build\nvEncCompat64.dll "$package\build\"
           Copy-Item scripts\install.ps1, scripts\uninstall.ps1 "$package\scripts\"
-          Copy-Item Install.bat, Uninstall.bat, README.md, Readme-EN.md, LICENSE, THIRD_PARTY_NOTICES.md "$package\"
+          Copy-Item Install.bat, Uninstall.bat, nvenc_compat.ini, README.md, Readme-EN.md, LICENSE, THIRD_PARTY_NOTICES.md "$package\"
           Compress-Archive -Path "$package\*" -DestinationPath 'dist\PicoNeoCompat-win64.zip'
           git archive --format=zip --output='dist\PicoNeoCompat-source.zip' HEAD
 
